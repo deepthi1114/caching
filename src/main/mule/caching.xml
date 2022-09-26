@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="d6be6a76-42a7-4dd6-9221-9c3f669798ff" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy" doc:id="b7c92952-f36d-4c60-a392-7c03f4e081f2" keyGenerationExpression="#[attributes.queryParams.accountId]" >
+	</ee:object-store-caching-strategy>
+	<flow name="cachingFlow" doc:id="bdac9921-0a42-4abd-8ced-fcb8570e2b93" >
+		<http:listener doc:name="Listener" doc:id="a0ba9699-aede-4c81-8c0f-bdd4bb914ffe" config-ref="HTTP_Listener_config" path="/accountTypes"/>
+		<logger level="INFO" doc:name="Logger" doc:id="0802b914-5efb-4de2-856c-51aefd45078c" message="request received--------"/>
+		<ee:cache doc:name="Cache" doc:id="93080d7c-c293-4402-9f35-4baa020178ac" cachingStrategy-ref="Caching_Strategy">
+			<logger level="INFO" doc:name="Logger" doc:id="7843f212-44fa-445d-82cf-640a08969eb3" message="cache starts------------"/>
+			<ee:transform doc:name="Transform Message" doc:id="44c25f1b-2127-4e53-be49-4d62a869df72" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[
+	{
+		accountId : 1001,
+		accountType:"savings"
+	},
+	{
+		accountId : 1002,
+		accountType:"current"
+	},
+	{
+		accountId : 1003,
+		accountType:"creditcard"
+	}
+	]
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Logger" doc:id="3b8f2303-bac3-4ca0-b9dc-db99553d019e" message="cache ends--------------"/>
+		</ee:cache>
+		<logger level="INFO" doc:name="Logger" doc:id="0761ed49-454d-42b5-a817-645232c87bf9" message="response sent-------"/>
+	</flow>
+</mule>
